@@ -1,0 +1,525 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>education: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">test-bpjs/v2/service/education/education_service.go (100.0%)</option>
+				
+				<option value="file1">test-bpjs/v2/service/employment/employment_service.go (100.0%)</option>
+				
+				<option value="file2">test-bpjs/v2/service/profile/profile_service.go (89.2%)</option>
+				
+				<option value="file3">test-bpjs/v2/service/skill/skill_service.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package service
+
+import (
+        "context"
+        "fmt"
+        transform "test-bpjs/v2/helper/transform"
+        "test-bpjs/v2/models"
+        "test-bpjs/v2/models/request"
+        "test-bpjs/v2/models/response"
+        "test-bpjs/v2/repository"
+)
+
+type EducationService interface {
+        GetEducationByCode(ctx context.Context, code int) (*response.EducationList, error)
+        CreateEducation(ctx context.Context, payload request.CreateEducationRequest) (*response.DefaultResponseWithId, error)
+        DeleteEducation(ctx context.Context, code, id int) (*response.DefaultResponse, error)
+}
+
+type educationService struct {
+        educationRepo repository.EducationRepository
+}
+
+func NewEducationService(educationRepo repository.EducationRepository) *educationService <span class="cov1" title="1">{
+        return &amp;educationService{educationRepo: educationRepo}
+}</span>
+
+func (s *educationService) GetEducationByCode(ctx context.Context, code int) (*response.EducationList, error) <span class="cov10" title="2">{
+        var educationList []*response.EducationResponse
+
+        educations, err := s.educationRepo.GetEducationByProfileCode(ctx, code)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to get education: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">for _, education := range educations </span><span class="cov1" title="1">{
+                educationList = append(educationList, transform.TransformEducation(education))
+        }</span>
+        <span class="cov1" title="1">return &amp;response.EducationList{
+                Data: educationList,
+        }, nil</span>
+}
+
+func (s *educationService) CreateEducation(ctx context.Context, payload request.CreateEducationRequest) (*response.DefaultResponseWithId, error) <span class="cov10" title="2">{
+        education, err := s.educationRepo.CreateEducation(ctx, &amp;models.Education{
+                ProfileCode: payload.ProfileCode,
+                School:      payload.School,
+                Degree:      payload.Degree,
+                StartDate:   payload.StartDate,
+                EndDate:     payload.EndDate,
+                City:        payload.City,
+                Description: payload.Description,
+        })
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to create education: %v", err)
+        }</span>
+        <span class="cov1" title="1">return &amp;response.DefaultResponseWithId{
+                ProfileCode: payload.ProfileCode,
+                Id:          education.Id,
+        }, nil</span>
+}
+
+func (s *educationService) DeleteEducation(ctx context.Context, code, id int) (*response.DefaultResponse, error) <span class="cov10" title="2">{
+        err := s.educationRepo.DeleteEducation(ctx, code, id)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to delete education: %v", err)
+        }</span>
+        <span class="cov1" title="1">return &amp;response.DefaultResponse{
+                ProfileCode: code,
+        }, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package service
+
+import (
+        "context"
+        "fmt"
+        transform "test-bpjs/v2/helper/transform"
+        "test-bpjs/v2/models"
+        "test-bpjs/v2/models/request"
+        "test-bpjs/v2/models/response"
+        "test-bpjs/v2/repository"
+)
+
+type EmploymentService interface {
+        GetEmploymentByCode(ctx context.Context, code int) (*response.EmploymentList, error)
+        CreateEmployment(ctx context.Context, payload request.CreateEmploymentRequest) (*response.DefaultResponseWithId, error)
+        DeleteEmployment(ctx context.Context, code, id int) (*response.DefaultResponse, error)
+}
+
+type employmentService struct {
+        employmentRepo repository.EmploymentRepository
+}
+
+func NewEmploymentService(employmentRepo repository.EmploymentRepository) *employmentService <span class="cov1" title="1">{
+        return &amp;employmentService{employmentRepo: employmentRepo}
+}</span>
+
+func (e *employmentService) GetEmploymentByCode(ctx context.Context, code int) (*response.EmploymentList, error) <span class="cov10" title="2">{
+        var employmentList []*response.EmploymentResponse
+
+        employments, err := e.employmentRepo.GetEmploymentByProfileCode(ctx, code)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to get employments: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">for _, employment := range employments </span><span class="cov1" title="1">{
+                employmentList = append(employmentList, transform.TransformEmployment(employment))
+        }</span>
+        <span class="cov1" title="1">return &amp;response.EmploymentList{
+                Data: employmentList,
+        }, nil</span>
+}
+
+func (e *employmentService) CreateEmployment(ctx context.Context, payload request.CreateEmploymentRequest) (*response.DefaultResponseWithId, error) <span class="cov10" title="2">{
+        employment, err := e.employmentRepo.CreateEmployment(ctx, &amp;models.Employment{
+                ProfileCode: payload.ProfileCode,
+                JobTitle:    payload.JobTitle,
+                Employer:    payload.Employer,
+                StartDate:   payload.StartDate,
+                EndDate:     payload.EndDate,
+                City:        payload.City,
+                Description: payload.Description,
+        })
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to create employment: %v", err)
+        }</span>
+        <span class="cov1" title="1">return &amp;response.DefaultResponseWithId{
+                ProfileCode: payload.ProfileCode,
+                Id:          employment.Id,
+        }, nil</span>
+}
+
+func (s *employmentService) DeleteEmployment(ctx context.Context, code, id int) (*response.DefaultResponse, error) <span class="cov10" title="2">{
+        err := s.employmentRepo.DeleteEmployment(ctx, code, id)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to delete employment: %v", err)
+        }</span>
+        <span class="cov1" title="1">return &amp;response.DefaultResponse{
+                ProfileCode: code,
+        }, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package service
+
+import (
+        "bytes"
+        "context"
+        "encoding/base64"
+        "fmt"
+        "image"
+        "image/png"
+        "os"
+        "path/filepath"
+        "strings"
+        transform "test-bpjs/v2/helper/transform"
+        "test-bpjs/v2/models"
+        "test-bpjs/v2/models/request"
+        "test-bpjs/v2/models/response"
+        "test-bpjs/v2/repository"
+        "time"
+)
+
+type ProfileService interface {
+        GetProfileByCode(ctx context.Context, code int) (*response.CreateProfileResponse, error)                //v
+        GetWorkingExperienceByCode(ctx context.Context, code int) (*response.WorkingExperiencesResponse, error) //v
+        CreateProfile(ctx context.Context, payload request.CreateProfileRequest) (*response.DefaultResponse, error)
+        UpdateProfile(ctx context.Context, payload request.UpdateProfileRequest) (*response.DefaultResponse, error)
+        DeletePhotoByCode(ctx context.Context, code int) (*response.DefaultResponse, error)
+        UploadPhotoByCode(ctx context.Context, payload request.UploadPhotoRequest) (*response.UploadPhotoResponse, error)
+        DownloadPhotoByCode(ctx context.Context, code int) (string, error)
+}
+
+type profileService struct {
+        profileRepo repository.ProfileRepository
+}
+
+func NewProfileService(profileRepo repository.ProfileRepository) *profileService <span class="cov1" title="1">{
+        return &amp;profileService{profileRepo: profileRepo}
+}</span>
+
+func (p *profileService) GetProfileByCode(ctx context.Context, code int) (*response.CreateProfileResponse, error) <span class="cov5" title="2">{
+        profile, err := p.profileRepo.GetProfileByCode(ctx, code)
+        if err != nil </span><span class="cov1" title="1">{
+                errString := fmt.Errorf("failed to get profile: %v", err)
+                return nil, errString
+        }</span>
+        <span class="cov1" title="1">return transform.TransformProfile(profile), err</span>
+}
+
+func (p *profileService) GetWorkingExperienceByCode(ctx context.Context, code int) (*response.WorkingExperiencesResponse, error) <span class="cov5" title="2">{
+        workingExperiences, err := p.profileRepo.GetWorkingExperienceByCode(ctx, code)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to get working experience: %v", err)
+        }</span>
+        <span class="cov1" title="1">return &amp;response.WorkingExperiencesResponse{
+                WorkingExperience: workingExperiences.WorkingExperience,
+        }, nil</span>
+}
+
+func (p *profileService) CreateProfile(ctx context.Context, payload request.CreateProfileRequest) (*response.DefaultResponse, error) <span class="cov5" title="2">{
+        profile, err := p.profileRepo.CreateProfile(ctx, &amp;models.Profile{
+                WantedJobTitle: payload.WantedJobTitle,
+                FirstName:      payload.FirstName,
+                LastName:       payload.LastName,
+                Email:          payload.Email,
+                Phone:          payload.Phone,
+                Country:        payload.Country,
+                City:           payload.City,
+                Address:        payload.Address,
+                PostalCode:     payload.PostalCode,
+                DrivingLicense: payload.DrivingLicense,
+                Nationality:    payload.Nationality,
+                PlaceOfBirth:   payload.PlaceOfBirth,
+                DateOfBirth:    payload.DateOfBirth,
+        })
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to create profile: %v", err)
+        }</span>
+        <span class="cov1" title="1">return &amp;response.DefaultResponse{
+                ProfileCode: profile.ProfileCode,
+        }, nil</span>
+}
+
+func (p *profileService) UpdateProfile(ctx context.Context, payload request.UpdateProfileRequest) (*response.DefaultResponse, error) <span class="cov5" title="2">{
+        profile, err := p.profileRepo.UpdateProfile(ctx, payload.ProfileCode, &amp;models.Profile{
+                WantedJobTitle:    payload.WantedJobTitle,
+                FirstName:         payload.FirstName,
+                LastName:          payload.LastName,
+                Email:             payload.Email,
+                Phone:             payload.Phone,
+                Country:           payload.Country,
+                City:              payload.City,
+                Address:           payload.Address,
+                PostalCode:        payload.PostalCode,
+                DrivingLicense:    payload.DrivingLicense,
+                Nationality:       payload.Nationality,
+                PlaceOfBirth:      payload.PlaceOfBirth,
+                DateOfBirth:       payload.DateOfBirth,
+                WorkingExperience: payload.WorkingExperience,
+        })
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to update profile: %v", err)
+        }</span>
+        <span class="cov1" title="1">return &amp;response.DefaultResponse{
+                ProfileCode: profile.ProfileCode,
+        }, nil</span>
+}
+
+func (p *profileService) DeletePhotoByCode(ctx context.Context, code int) (*response.DefaultResponse, error) <span class="cov5" title="2">{
+        profileCode, err := p.profileRepo.DeletePhotoByCode(ctx, code)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to delete photo: %v", err)
+        }</span>
+        <span class="cov1" title="1">return &amp;response.DefaultResponse{
+                ProfileCode: profileCode.ProfileCode,
+        }, nil</span>
+}
+
+func (p *profileService) UploadPhotoByCode(ctx context.Context, payload request.UploadPhotoRequest) (*response.UploadPhotoResponse, error) <span class="cov5" title="2">{
+        imgPath := filepath.Join("public/image", fmt.Sprintf("%d-%d.png", payload.ProfileCode, time.Now().Unix()))
+        imgFullPath := filepath.Join("../../", imgPath)
+
+        b64data := payload.Base64Img[strings.IndexByte(payload.Base64Img, ',')+1:]
+        imgData, err := base64.StdEncoding.DecodeString(b64data)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to decode base64 string: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">imgReader := bytes.NewReader(imgData)
+
+        img, _, err := image.Decode(imgReader)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to decode image: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">outFile, err := os.Create(imgFullPath)
+        if err != nil </span><span class="cov0" title="0">{
+                outFile, err = os.Create(imgPath)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("failed creating output file: %v", err)
+                }</span>
+        }
+
+        <span class="cov1" title="1">defer outFile.Close()
+
+        err = png.Encode(outFile, img)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to encode image to file: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">profile, err := p.profileRepo.UpdateProfile(ctx, payload.ProfileCode, &amp;models.Profile{
+                PhotoUrl: imgPath,
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov1" title="1">return &amp;response.UploadPhotoResponse{
+                ProfileCode: profile.ProfileCode,
+                PhotoUrl:    profile.PhotoUrl,
+        }, nil</span>
+}
+
+func (p *profileService) DownloadPhotoByCode(ctx context.Context, code int) (string, error) <span class="cov10" title="4">{
+        var buf bytes.Buffer
+
+        profile, err := p.profileRepo.GetProfileByCode(ctx, code)
+        if err != nil </span><span class="cov1" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="3">imgFullPath := filepath.Join("../../", profile.PhotoUrl)
+        imgFile, err := os.Open(imgFullPath)
+        if err != nil </span><span class="cov1" title="1">{
+                imgFile, err = os.Open(profile.PhotoUrl)
+                if err != nil </span><span class="cov1" title="1">{
+                        return "", fmt.Errorf("failed to open image file: %v", err)
+                }</span>
+        }
+        <span class="cov5" title="2">defer imgFile.Close()
+
+        img, _, err := image.Decode(imgFile)
+        if err != nil </span><span class="cov1" title="1">{
+                return "", fmt.Errorf("failed to decode image: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">err = png.Encode(&amp;buf, img)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("failed to encode image: %v", err)
+        }</span>
+
+        // Encode the buffer to base64 string
+        <span class="cov1" title="1">base64Str := base64.StdEncoding.EncodeToString(buf.Bytes())
+        res := fmt.Sprintf("data:image/png;base64,%s", base64Str)
+
+        return res, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package service
+
+import (
+        "context"
+        "fmt"
+        transform "test-bpjs/v2/helper/transform"
+        "test-bpjs/v2/models"
+        "test-bpjs/v2/models/request"
+        "test-bpjs/v2/models/response"
+        "test-bpjs/v2/repository"
+)
+
+type SkillService interface {
+        GetSkillsByCode(ctx context.Context, code int) (*response.SkillList, error)
+        CreateSkill(ctx context.Context, payload request.CreateSkillRequest) (*response.DefaultResponseWithId, error)
+        DeleteSkill(ctx context.Context, code, id int) (*response.DefaultResponse, error)
+}
+
+type skillService struct {
+        skillRepo repository.SkillRepository
+}
+
+func NewSkillService(skillRepo repository.SkillRepository) *skillService <span class="cov1" title="1">{
+        return &amp;skillService{skillRepo: skillRepo}
+}</span>
+
+func (s *skillService) GetSkillsByCode(ctx context.Context, code int) (*response.SkillList, error) <span class="cov10" title="2">{
+        var skillList []*response.SkillResponse
+
+        skills, err := s.skillRepo.GetSkillsByProfileCode(ctx, code)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to get skills: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">for _, skill := range skills </span><span class="cov1" title="1">{
+                skillList = append(skillList, transform.TransformSkill(skill))
+        }</span>
+        <span class="cov1" title="1">return &amp;response.SkillList{
+                Data: skillList,
+        }, nil</span>
+}
+
+func (s *skillService) CreateSkill(ctx context.Context, payload request.CreateSkillRequest) (*response.DefaultResponseWithId, error) <span class="cov10" title="2">{
+        skill, err := s.skillRepo.CreateSkill(ctx, &amp;models.Skill{
+                ProfileCode: payload.ProfileCode,
+                Skill:       payload.Skill,
+                Level:       payload.Level,
+        })
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to create skill: %v", err)
+        }</span>
+        <span class="cov1" title="1">return &amp;response.DefaultResponseWithId{
+                ProfileCode: payload.ProfileCode,
+                Id:          skill.Id,
+        }, nil</span>
+}
+
+func (s *skillService) DeleteSkill(ctx context.Context, code, id int) (*response.DefaultResponse, error) <span class="cov10" title="2">{
+        err := s.skillRepo.DeleteSkill(ctx, code, id)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to delete skill: %v", err)
+        }</span>
+        <span class="cov1" title="1">return &amp;response.DefaultResponse{
+                ProfileCode: code,
+        }, nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

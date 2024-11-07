@@ -1,0 +1,591 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>controller: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">test-bpjs/v2/controller/api_controller.go (92.3%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package controller
+
+import (
+        "fmt"
+        "net/http"
+        "test-bpjs/v2/models/request"
+        educationService "test-bpjs/v2/service/education"
+        employmentService "test-bpjs/v2/service/employment"
+        profileService "test-bpjs/v2/service/profile"
+        skillService "test-bpjs/v2/service/skill"
+        "time"
+
+        "github.com/labstack/echo/v4"
+        "go.opentelemetry.io/otel"
+        "go.opentelemetry.io/otel/trace"
+)
+
+var apiTracer = otel.Tracer("apiController")
+
+type apiControllerHandler struct {
+        group             *echo.Group
+        profileService    profileService.ProfileService
+        skillService      skillService.SkillService
+        educationService  educationService.EducationService
+        employmentService employmentService.EmploymentService
+}
+
+func NewApiControllerHandler(
+        group *echo.Group,
+        profileService profileService.ProfileService,
+        skillService skillService.SkillService,
+        educationService educationService.EducationService,
+        employmentService employmentService.EmploymentService,
+) *apiControllerHandler <span class="cov10" title="67">{
+        return &amp;apiControllerHandler{
+                group:             group,
+                profileService:    profileService,
+                skillService:      skillService,
+                educationService:  educationService,
+                employmentService: employmentService,
+        }
+}</span>
+
+func (h *apiControllerHandler) MapRoutes() <span class="cov0" title="0">{
+        //profile
+        h.group.GET("/profile/:profileCode", h.GetProfileByCode())
+        h.group.POST("/profile", h.CreateProfile())
+        h.group.PUT("/profile/:profileCode", h.UpdateProfile())
+
+        //photo
+        h.group.GET("/photo/:profileCode", h.DownloadPhoto())
+        h.group.PUT("/photo/:profileCode", h.UploadPhoto())
+        h.group.DELETE("/photo/:profileCode", h.DeletePhoto())
+
+        //working experiences
+        h.group.GET("/working-experience/:profileCode", h.GetWorkingExperienceByCode())
+        h.group.PUT("/working-experience/:profileCode", h.UpdateWorkingExperienceByCode())
+
+        //education
+        h.group.GET("/education/:profileCode", h.GetEducationListByCode())
+        h.group.POST("/education/:profileCode", h.AddEducationByCode())
+        h.group.DELETE("/education/:profileCode", h.DeleteEducationByCodeAndId())
+
+        //employment
+        h.group.GET("/employment/:profileCode", h.GetEmploymentListByCode())
+        h.group.POST("/employment/:profileCode", h.AddEmploymentByCode())
+        h.group.DELETE("/employment/:profileCode", h.DeleteEmploymentByCodeAndId())
+
+        //skill
+        h.group.GET("/skill/:profileCode", h.GetSkillListByCode())
+        h.group.POST("/skill/:profileCode", h.AddSkillByCode())
+        h.group.DELETE("/skill/:profileCode", h.DeleteSkillByCodeAndId())
+}</span>
+
+func (h *apiControllerHandler) GetProfileByCode() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "GetProfileByCode", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.GetProfileRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.profileService.GetProfileByCode(ctx, request.ProfileCode)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) CreateProfile() echo.HandlerFunc <span class="cov3" title="3">{
+        return func(c echo.Context) error </span><span class="cov3" title="3">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "CreateProfile", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.CreateProfileRequest
+                // Read the raw JSON data from the request body
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.profileService.CreateProfile(ctx, request)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) UpdateProfile() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "UpdateProfile", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.UpdateProfileRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.profileService.UpdateProfile(ctx, request)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) DownloadPhoto() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "DownloadPhoto", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.GetProfileRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.profileService.DownloadPhotoByCode(ctx, request.ProfileCode)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) UploadPhoto() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "DownloadPhoto", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.UploadPhotoRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.profileService.UploadPhotoByCode(ctx, request)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) DeletePhoto() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "DeletePhoto", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.GetProfileRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.profileService.DeletePhotoByCode(ctx, request.ProfileCode)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) GetWorkingExperienceByCode() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "GetWorkingExperienceByCode", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.GetProfileRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.profileService.GetWorkingExperienceByCode(ctx, request.ProfileCode)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) UpdateWorkingExperienceByCode() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "UpdateWorkingExperienceByCode", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.UpdateProfileRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.profileService.UpdateProfile(ctx, request)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) GetEducationListByCode() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "GetEducationListByCode", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.GetProfileRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.educationService.GetEducationByCode(ctx, request.ProfileCode)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) AddEducationByCode() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "AddEducationByCode", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.CreateEducationRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.educationService.CreateEducation(ctx, request)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) DeleteEducationByCodeAndId() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "DeleteEducationByCodeAndId", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.DefaultGetDataByProfileCodeAndId
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+                <span class="cov3" title="3">fmt.Println(request)
+
+                if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.educationService.DeleteEducation(ctx, request.ProfileCode, request.Id)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) GetEmploymentListByCode() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "GetEmploymentListByCode", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.GetProfileRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.employmentService.GetEmploymentByCode(ctx, request.ProfileCode)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) AddEmploymentByCode() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "AddEmploymentByCode", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.CreateEmploymentRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.employmentService.CreateEmployment(ctx, request)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) DeleteEmploymentByCodeAndId() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "DeleteEmploymentByCodeAndId", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.DefaultGetDataByProfileCodeAndId
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.employmentService.DeleteEmployment(ctx, request.ProfileCode, request.Id)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) GetSkillListByCode() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "GetSkillListByCode", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.GetProfileRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.skillService.GetSkillsByCode(ctx, request.ProfileCode)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) AddSkillByCode() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "AddSkillByCode", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.CreateSkillRequest
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.skillService.CreateSkill(ctx, request)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+
+func (h *apiControllerHandler) DeleteSkillByCodeAndId() echo.HandlerFunc <span class="cov3" title="4">{
+        return func(c echo.Context) error </span><span class="cov3" title="4">{
+
+                ctx, span := apiTracer.Start(c.Request().Context(), "DeleteSkillByCodeAndId", trace.WithTimestamp(time.Now()), trace.WithSpanKind(trace.SpanKindClient))
+                defer span.End(trace.WithStackTrace(true))
+
+                var request request.DefaultGetDataByProfileCodeAndId
+                if err := c.Bind(&amp;request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to bind")
+                }</span>
+
+                <span class="cov3" title="3">if err := c.Validate(request); err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusBadRequest, "bad request. failed to validate")
+                }</span>
+
+                <span class="cov2" title="2">res, err := h.skillService.DeleteSkill(ctx, request.ProfileCode, request.Id)
+                if err != nil </span><span class="cov1" title="1">{
+                        return echo.NewHTTPError(http.StatusInternalServerError, err)
+                }</span>
+
+                <span class="cov1" title="1">return c.JSON(http.StatusOK, res)</span>
+        }
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
